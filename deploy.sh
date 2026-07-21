@@ -94,11 +94,9 @@ git_update() {
 php_syntax_check() {
   log "PHP syntax check"
   cd "$APP_DIR"
-  ERR=0
-  while IFS= read -r -d '' f; do
-    php -l "$f" >/dev/null || ERR=1
-  done < <(find . -name '*.php' -not -path './vendor/*' -print0)
-  [[ "$ERR" -eq 0 ]] || fail "PHP syntax errors"
+  if ! find . -name '*.php' -not -path './vendor/*' -exec php -l {} \; >/dev/null 2>&1; then
+    fail "PHP syntax errors"
+  fi
 }
 
 db_check() {

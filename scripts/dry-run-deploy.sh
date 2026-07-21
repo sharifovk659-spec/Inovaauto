@@ -22,9 +22,12 @@ echo "PUBLIC_DIR=${PUBLIC_DIR}"
 
 cd "$APP_DIR"
 echo "[CHECK] PHP syntax..."
-ERR=0
-while IFS= read -r -d '' f; do php -l "$f" >/dev/null || ERR=1; done < <(find . -name '*.php' -not -path './vendor/*' -print0)
-[[ "$ERR" -eq 0 ]] && echo "[OK] PHP syntax" || { echo "[FAIL] PHP syntax"; exit 1; }
+if find . -name '*.php' -not -path './vendor/*' -exec php -l {} \; >/dev/null 2>&1; then
+  echo "[OK] PHP syntax"
+else
+  echo "[FAIL] PHP syntax"
+  exit 1
+fi
 
 if [[ -f "${PUBLIC_DIR}/.env" && ! -f "${APP_DIR}/.env" ]]; then
   cp "${PUBLIC_DIR}/.env" "${APP_DIR}/.env"

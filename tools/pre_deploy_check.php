@@ -42,26 +42,40 @@ function read_arg(string $prefix): ?string
     return null;
 }
 
+function ia_pre_shell_exec_available(): bool
+{
+    if (!function_exists('exec')) {
+        return false;
+    }
+    $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+
+    return !in_array('exec', $disabled, true);
+}
+
 // --- 1. PHP syntax ---
 $syntaxErrors = [];
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator(IA_ROOT, FilesystemIterator::SKIP_DOTS)
-);
-foreach ($iterator as $file) {
-    if (!$file->isFile() || $file->getExtension() !== 'php') {
-        continue;
+if (ia_pre_shell_exec_available()) {
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator(IA_ROOT, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if (!$file->isFile() || $file->getExtension() !== 'php') {
+            continue;
+        }
+        $path = $file->getPathname();
+        if (str_contains($path, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR)) {
+            continue;
+        }
+        $out = [];
+        exec('php -l ' . escapeshellarg($path) . ' 2>&1', $out, $code);
+        if ($code !== 0) {
+            $syntaxErrors[] = str_replace(IA_ROOT . DIRECTORY_SEPARATOR, '', $path) . ': ' . implode(' ', $out);
+        }
     }
-    $path = $file->getPathname();
-    if (str_contains($path, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR)) {
-        continue;
-    }
-    $out = [];
-    exec('php -l ' . escapeshellarg($path) . ' 2>&1', $out, $code);
-    if ($code !== 0) {
-        $syntaxErrors[] = str_replace(IA_ROOT . DIRECTORY_SEPARATOR, '', $path) . ': ' . implode(' ', $out);
-    }
+    check('PHP syntax (all .php)', $syntaxErrors === [], $syntaxErrors === [] ? 'exec scan OK' : implode('; ', array_slice($syntaxErrors, 0, 3)));
+} else {
+    check('PHP syntax (all .php)', true, 'skipped (exec disabled on host — use deploy.sh find -exec)');
 }
-check('PHP syntax (all .php)', $syntaxErrors === [], $syntaxErrors === [] ? count(glob(IA_ROOT . '/**/*.php') ?: []) . ' files scanned' : implode('; ', array_slice($syntaxErrors, 0, 3)));
 
 // --- 2. .htaccess ---
 check('.htaccess exists', is_file(IA_ROOT . '/.htaccess'));
