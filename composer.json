@@ -1,0 +1,23 @@
+{
+    "name": "innovaauto/admin-panel",
+    "description": "InnovaAuto Admin Panel",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "InnovaAuto\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "InnovaAuto\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

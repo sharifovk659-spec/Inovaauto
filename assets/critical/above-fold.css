@@ -1,0 +1,67 @@
+/* Critical above-the-fold (mobile canvas) — inlined in <head> via site-header.php */
+@media (max-width:991.98px){
+  html[data-bs-theme='dark'],html[data-bs-theme='dark']:has(body.ia-site){background:#050b18!important}
+  html[data-bs-theme='dark'] body.ia-site{background:#050b18!important;color:#e2e8f0!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-site-main{background:#050b18!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro{background:#050b18!important;border-top-color:rgba(255,255,255,.07)!important;color:#e2e8f0!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-bg{background:radial-gradient(700px 220px at 8% 0,rgba(61,126,255,.14),transparent 65%),radial-gradient(600px 200px at 92% 0,rgba(124,58,237,.12),transparent 65%)!important;opacity:1!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-cta{background:rgba(255,255,255,.03)!important;border-bottom-color:rgba(255,255,255,.07)!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-brand-link,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-brand-title,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-heading,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-cta-title{color:#f8fafc!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-text,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-list a,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-contact-list a,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-contact-list>li>span:not(.ia-footer-contact-ico),
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-cta-sub,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-copy,
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-legal a{color:#94a3b8!important}
+  html[data-bs-theme='dark'] body.ia-site .ia-footer-pro .ia-footer-divider{background:rgba(255,255,255,.08)!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-page-section,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-quick-cats,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-brands-section,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-vip-section,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-home-media,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-why-section,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-home-mobile,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-home-hero,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-home-hero-visual{background:#050b18!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-pop-cats-panel{background:transparent!important;border-color:rgba(255,255,255,.08)!important;box-shadow:none!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-pop-cats-panel>.d-flex h2,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-pop-cat-label{color:#f8fafc!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-pop-cats-more{color:#93c5fd!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-brands-section h2,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-page-section h2,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-page-section .h5{color:#f8fafc!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-page-section .text-secondary,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-brands-section p.text-secondary{color:rgba(148,163,184,.95)!important}
+  html[data-bs-theme='dark'] body.ia-page-home .border-secondary{border-color:rgba(255,255,255,.1)!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-listing-card,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-listing-card-vip{background:#1a222e!important;border-color:#2d3d52!important;box-shadow:none!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-listing-title-link{color:#f8fafc!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-listing-specs-dl dt{color:#94a3b8!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-listing-specs-dl dd,
+  html[data-bs-theme='dark'] body.ia-page-home .ia-listing-city-name{color:#e8edf4!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-why-card{background:#1a222e!important;border-color:#2d3d52!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-why-card h3{color:#f8fafc!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-why-card p{color:#94a3b8!important}
+  html[data-bs-theme='dark'] body.ia-page-home .ia-page-section>a.small{color:#93c5fd!important}
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-site{background:#f8fafc!important;color:#0f172a!important}
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-site .ia-site-main{background:#f8fafc!important}
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-page-section,
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-quick-cats,
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-brands-section{background:#f8fafc!important}
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-pop-cats-panel>h2,
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-pop-cats-panel>.d-flex h2,
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-pop-cat-label,
+  html[data-bs-theme='light']:not([data-ia-palette='sepia']) body.ia-page-home .ia-brands-section h2{color:#0f172a!important}
+  html[data-ia-palette='sepia'] body.ia-site{background:#f3ebd9!important;color:#3a3228!important}
+  html[data-ia-palette='sepia'] body.ia-site .ia-site-main{background:#f3ebd9!important}
+  html[data-ia-palette='sepia'] body.ia-page-home .ia-page-section,
+  html[data-ia-palette='sepia'] body.ia-page-home .ia-quick-cats,
+  html[data-ia-palette='sepia'] body.ia-page-home .ia-brands-section{background:#f3ebd9!important}
+  html[data-ia-palette='sepia'] body.ia-page-home .ia-pop-cats-panel>.d-flex h2,
+  html[data-ia-palette='sepia'] body.ia-page-home .ia-pop-cat-label,
+  html[data-ia-palette='sepia'] body.ia-page-home .ia-brands-section h2{color:#3a3228!important}
+}

@@ -1,0 +1,50 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env.hostinger.example
+
+# Local / production DB overrides (never commit credentials)
+config/local.php
+config/database.production.php
+config/database.local.php
+
+# User uploads & generated media
+uploads/
+!uploads/**/.gitkeep
+
+# Backups (server-side only)
+backups/
+
+# Logs
+logs/
+storage/logs/*.log
+*.log
+
+# Runtime cache
+storage/cache/*.json
+
+# Dependencies
+node_modules/
+vendor/
+
+# PHPUnit
+/.phpunit.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deploy archives (generated locally)
+deploy-*.zip
+
+# Python / tool artifacts
+tools/__pycache__/
+tools/*.pyc
+tools/_test_cookies.txt
+tools/_login_out.html
+tools/live_home.html
+
+# IDE
+.idea/
+.vscode/

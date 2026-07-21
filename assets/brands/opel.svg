@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Opel">
+  <circle cx="64" cy="64" r="42" fill="none" stroke="#1f2937" stroke-width="7"/>
+  <path
+    fill="none"
+    stroke="#1f2937"
+    stroke-width="7"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+    d="M30 64h18l8-14 8 28 8-28 8 14h18"
+  />
+</svg>

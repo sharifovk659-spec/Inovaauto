@@ -1,0 +1,4 @@
+# Allow brand SVG logos
+<IfModule mod_mime.c>
+    AddType image/svg+xml .svg
+</IfModule>

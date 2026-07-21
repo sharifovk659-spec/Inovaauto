@@ -1,0 +1,76 @@
+(function (global) {
+  'use strict';
+
+  var TAP_COUNT = 3;
+  var TAP_WINDOW_MS = 700;
+  var tapState = Object.create(null);
+
+  function isMobileContext() {
+    if (global.matchMedia('(min-width: 992px)').matches) return false;
+    return 'ontouchstart' in global || (global.navigator && global.navigator.maxTouchPoints > 0);
+  }
+
+  function slotInput(idx) {
+    var grid = document.getElementById('iaPhotoSlotGrid');
+    if (!grid) return null;
+    return grid.querySelector('.ia-photo-slot-input[data-slot="' + idx + '"]');
+  }
+
+  function openGallery(idx) {
+    var input = slotInput(idx);
+    if (!input) return;
+    var hadCapture = input.hasAttribute('capture');
+    if (hadCapture) input.removeAttribute('capture');
+    input.click();
+    if (hadCapture) {
+      global.setTimeout(function () {
+        input.setAttribute('capture', 'environment');
+      }, 400);
+    }
+  }
+
+  function isTapTarget(el) {
+    if (!el) return false;
+    if (el.closest('.ia-photo-slot-btn')) return false;
+    if (el.closest('.ia-photo-slot-remove')) return false;
+    return !!el.closest('.ia-photo-slot-example, .ia-photo-slot-preview, .ia-photo-slot-stage');
+  }
+
+  function onPhotoAreaTap(e) {
+    if (!isTapTarget(e.target)) return;
+
+    var slot = e.target.closest('.ia-photo-slot');
+    if (!slot) return;
+    if (slot.classList.contains('ia-photo-slot--checking')) return;
+
+    var idx = parseInt(slot.getAttribute('data-slot'), 10);
+    if (isNaN(idx)) return;
+
+    var now = Date.now();
+    var state = tapState[idx] || { count: 0, at: 0 };
+    if (now - state.at > TAP_WINDOW_MS) state.count = 0;
+    state.count += 1;
+    state.at = now;
+    tapState[idx] = state;
+
+    if (state.count < TAP_COUNT) return;
+
+    state.count = 0;
+    e.preventDefault();
+    e.stopPropagation();
+    openGallery(idx);
+  }
+
+  function init() {
+    if (!isMobileContext()) return;
+    var grid = document.getElementById('iaPhotoSlotGrid');
+    if (!grid) return;
+    grid.addEventListener('click', onPhotoAreaTap, true);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})(window);

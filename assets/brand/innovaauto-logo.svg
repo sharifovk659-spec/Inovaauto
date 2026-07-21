@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 48" role="img" aria-label="InnovaAuto">
+  <defs>
+    <linearGradient id="ia-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="45%" stop-color="#3d7eff"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="ia-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ia-word" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="ia-sh" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#1e3a8a" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  <g filter="url(#ia-sh)">
+    <rect x="0" y="4" width="40" height="40" rx="11" fill="url(#ia-g)"/>
+    <rect x="0" y="4" width="40" height="18" rx="11" fill="url(#ia-glow)"/>
+    <text x="20" y="31" text-anchor="middle" font-family="'DM Sans', system-ui, sans-serif" font-size="14.5" font-weight="700" fill="#ffffff" letter-spacing="-0.5">IA</text>
+  </g>
+  <text x="50" y="32" font-family="'DM Sans', system-ui, -apple-system, sans-serif" font-size="21.5" font-weight="700" letter-spacing="-0.45" fill="#0f172a">
+    <tspan>Innova</tspan><tspan fill="url(#ia-word)">Auto</tspan>
+  </text>
+</svg>
