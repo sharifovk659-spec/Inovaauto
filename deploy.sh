@@ -157,15 +157,9 @@ composer_install_if_needed() {
 }
 
 health_check() {
-  log "Post-deploy HTTP check"
-  URL="${IA_HEALTH_URL:-https://inovaauto.com/health.php}"
-  HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "$URL" || echo '000')"
-  if [[ "$HTTP_CODE" != "200" ]]; then
-    HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 'https://inovaauto.com/' || echo '000')"
-  fi
-  [[ "$HTTP_CODE" == "200" || "$HTTP_CODE" == "301" || "$HTTP_CODE" == "302" ]] \
-    || fail "Site health check failed (HTTP ${HTTP_CODE})"
-  log "Site responds HTTP ${HTTP_CODE}"
+  log "Post-deploy checks (Step 10)"
+  export BASE_URL="${IA_HEALTH_BASE:-https://inovaauto.com}"
+  bash "$APP_DIR/tools/post_deploy_check.sh" || fail "Post-deploy checks failed"
 }
 
 main() {
@@ -176,6 +170,8 @@ main() {
   git_update
   php_syntax_check
   db_check
+  log "Pre-deploy gate (local checks on server copy)"
+  php "$APP_DIR/tools/pre_deploy_check.php" --base-url="${IA_HEALTH_BASE:-https://inovaauto.com}" || fail "Pre-deploy checks failed"
   rsync_to_public
   composer_install_if_needed
   run_migrations
