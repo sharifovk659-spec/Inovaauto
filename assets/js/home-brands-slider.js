@@ -1,12 +1,14 @@
 /**
- * InnovaAuto — popular brands continuous marquee (PC + mobile).
- * CSS animation drives motion; JS only pauses on drag / hover / reduced-motion.
+ * InnovaAuto — popular brands continuous slider (PC + mobile).
+ * Always moves via requestAnimationFrame. No hover pause.
  */
 (function () {
   'use strict';
 
-  var USER_PAUSE_MS = 2800;
-  var DRAG_THRESHOLD = 5;
+  var SPEED_MOBILE = 0.85;
+  var SPEED_DESKTOP = 0.75;
+  var DRAG_PAUSE_MS = 2200;
+  var DRAG_THRESHOLD = 6;
 
   function initBrandsSlider(section) {
     var viewport = section.querySelector('.ia-brands-slider');
@@ -15,155 +17,88 @@
       return;
     }
 
-    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var resumeTimer = null;
+    // Kill CSS animation — JS owns transform
+    inner.style.animation = 'none';
+    inner.classList.add('is-js-marquee');
+
+    var mobileMq = window.matchMedia('(max-width: 991.98px)');
+    var speed = mobileMq.matches ? SPEED_MOBILE : SPEED_DESKTOP;
+    var offset = 0;
     var dragging = false;
+    var paused = false;
+    var tabHidden = false;
+    var resumeTimer = null;
     var dragStartX = 0;
-    var dragBaseX = 0;
+    var dragStartOffset = 0;
     var pointerId = null;
-    var touchPending = false;
-    var currentX = 0;
+    var started = false;
 
     function firstTrack() {
       return inner.querySelector('.ia-brands-slider__track');
     }
 
-    function trackWidth() {
+    function loopWidth() {
       var track = firstTrack();
-      return track ? track.getBoundingClientRect().width : 0;
+      if (!track) {
+        return 0;
+      }
+      return track.offsetWidth || track.getBoundingClientRect().width || 0;
     }
 
-    function ensureDuplicateTracks() {
+    function ensureTwoTracks() {
       var track = firstTrack();
       if (!track) {
         return;
       }
       var tracks = inner.querySelectorAll('.ia-brands-slider__track');
-      // Exactly 2 equal tracks so CSS translate3d(-50%) loops seamlessly
       while (tracks.length < 2) {
         var clone = track.cloneNode(true);
         clone.setAttribute('aria-hidden', 'true');
         inner.appendChild(clone);
         tracks = inner.querySelectorAll('.ia-brands-slider__track');
       }
-      // Remove extras that would break -50% marquee
       while (tracks.length > 2) {
         inner.removeChild(tracks[tracks.length - 1]);
         tracks = inner.querySelectorAll('.ia-brands-slider__track');
       }
     }
 
-    function setPaused(paused) {
-      if (paused) {
-        viewport.classList.add('is-paused');
-        inner.style.animationPlayState = 'paused';
-      } else {
-        viewport.classList.remove('is-paused');
-        if (!reducedMotion) {
-          inner.style.animationPlayState = 'running';
-        }
+    function normalize() {
+      var w = loopWidth();
+      if (w <= 0) {
+        return;
+      }
+      offset = offset % w;
+      if (offset < 0) {
+        offset += w;
       }
     }
 
-    function pauseForUser(ms) {
-      setPaused(true);
+    function paint() {
+      inner.style.transform = 'translate3d(' + (-offset) + 'px,0,0)';
+    }
+
+    function tick() {
+      window.requestAnimationFrame(tick);
+      if (tabHidden || paused || dragging) {
+        return;
+      }
+      offset += speed;
+      normalize();
+      paint();
+    }
+
+    function pauseBriefly() {
+      paused = true;
       if (resumeTimer) {
         window.clearTimeout(resumeTimer);
       }
       resumeTimer = window.setTimeout(function () {
-        if (!dragging) {
-          // Clear manual transform so CSS marquee continues cleanly
-          inner.style.transform = '';
-          setPaused(false);
-        }
-      }, ms);
+        paused = false;
+      }, DRAG_PAUSE_MS);
     }
 
-    function readCurrentTranslateX() {
-      var style = window.getComputedStyle(inner);
-      var t = style.transform;
-      if (!t || t === 'none') {
-        return 0;
-      }
-      var m = t.match(/matrix\(([^)]+)\)/);
-      if (m) {
-        var parts = m[1].split(',');
-        return parseFloat(parts[4]) || 0;
-      }
-      var m3 = t.match(/matrix3d\(([^)]+)\)/);
-      if (m3) {
-        var p3 = m3[1].split(',');
-        return parseFloat(p3[12]) || 0;
-      }
-      return 0;
-    }
-
-    function applyDragX(x) {
-      var half = trackWidth();
-      if (half > 0) {
-        while (x <= -half) {
-          x += half;
-        }
-        while (x > 0) {
-          x -= half;
-        }
-      }
-      currentX = x;
-      inner.style.transform = 'translate3d(' + x + 'px,0,0)';
-    }
-
-    function endDrag() {
-      if (!dragging && !touchPending) {
-        return;
-      }
-      dragging = false;
-      touchPending = false;
-      pointerId = null;
-      viewport.classList.remove('is-dragging');
-      pauseForUser(USER_PAUSE_MS);
-    }
-
-    viewport.addEventListener('mouseenter', function () {
-      if (!reducedMotion) {
-        setPaused(true);
-      }
-    });
-    viewport.addEventListener('mouseleave', function () {
-      if (!dragging && !reducedMotion) {
-        pauseForUser(600);
-      }
-    });
-
-    viewport.addEventListener('touchstart', function (e) {
-      if (!e.touches.length) {
-        return;
-      }
-      touchPending = true;
-      dragStartX = e.touches[0].clientX;
-      dragBaseX = readCurrentTranslateX();
-      setPaused(true);
-    }, { passive: true });
-
-    viewport.addEventListener('touchmove', function (e) {
-      if (!e.touches.length || (!touchPending && !dragging)) {
-        return;
-      }
-      var dx = e.touches[0].clientX - dragStartX;
-      if (touchPending && Math.abs(dx) >= DRAG_THRESHOLD) {
-        dragging = true;
-        touchPending = false;
-        viewport.classList.add('is-dragging');
-      }
-      if (!dragging) {
-        return;
-      }
-      applyDragX(dragBaseX + dx);
-    }, { passive: true });
-
-    viewport.addEventListener('touchend', endDrag, { passive: true });
-    viewport.addEventListener('touchcancel', endDrag, { passive: true });
-
-    viewport.addEventListener('pointerdown', function (e) {
+    function onPointerDown(e) {
       if (e.pointerType === 'touch') {
         return;
       }
@@ -172,82 +107,128 @@
       }
       pointerId = e.pointerId;
       dragStartX = e.clientX;
-      dragBaseX = readCurrentTranslateX();
-      setPaused(true);
-      if (viewport.setPointerCapture) {
-        try {
-          viewport.setPointerCapture(e.pointerId);
-        } catch (err) {}
-      }
-    });
+      dragStartOffset = offset;
+      try {
+        viewport.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    }
 
-    viewport.addEventListener('pointermove', function (e) {
+    function onPointerMove(e) {
       if (e.pointerId !== pointerId) {
         return;
       }
-      var dx = e.clientX - dragStartX;
-      if (!dragging && Math.abs(dx) >= DRAG_THRESHOLD) {
-        dragging = true;
-        viewport.classList.add('is-dragging');
-      }
-      if (!dragging) {
+      var dx = dragStartX - e.clientX;
+      if (!dragging && Math.abs(dx) < DRAG_THRESHOLD) {
         return;
       }
-      applyDragX(dragBaseX + dx);
-    });
+      dragging = true;
+      viewport.classList.add('is-dragging');
+      offset = dragStartOffset + dx;
+      normalize();
+      paint();
+    }
 
-    viewport.addEventListener('pointerup', function (e) {
-      if (e.pointerId !== pointerId) {
+    function onPointerUp(e) {
+      if (pointerId !== null && e.pointerId !== pointerId) {
         return;
       }
-      endDrag();
-    });
+      var wasDragging = dragging;
+      dragging = false;
+      pointerId = null;
+      viewport.classList.remove('is-dragging');
+      if (wasDragging) {
+        pauseBriefly();
+      }
+    }
 
-    viewport.addEventListener('pointercancel', function (e) {
-      if (e.pointerId !== pointerId) {
+    viewport.addEventListener('pointerdown', onPointerDown);
+    viewport.addEventListener('pointermove', onPointerMove);
+    viewport.addEventListener('pointerup', onPointerUp);
+    viewport.addEventListener('pointercancel', onPointerUp);
+
+    viewport.addEventListener('touchstart', function (e) {
+      if (!e.touches.length) {
         return;
       }
-      endDrag();
-    });
+      dragStartX = e.touches[0].clientX;
+      dragStartOffset = offset;
+      pointerId = -1;
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', function (e) {
+      if (!e.touches.length || pointerId === null) {
+        return;
+      }
+      var dx = dragStartX - e.touches[0].clientX;
+      if (!dragging && Math.abs(dx) < DRAG_THRESHOLD) {
+        return;
+      }
+      dragging = true;
+      viewport.classList.add('is-dragging');
+      offset = dragStartOffset + dx;
+      normalize();
+      paint();
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', function () {
+      var wasDragging = dragging;
+      dragging = false;
+      pointerId = null;
+      viewport.classList.remove('is-dragging');
+      if (wasDragging) {
+        pauseBriefly();
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchcancel', function () {
+      dragging = false;
+      pointerId = null;
+      viewport.classList.remove('is-dragging');
+    }, { passive: true });
 
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) {
-        setPaused(true);
-      } else if (!dragging && !reducedMotion) {
-        setPaused(false);
-      }
+      tabHidden = document.hidden;
     });
+
+    if (typeof mobileMq.addEventListener === 'function') {
+      mobileMq.addEventListener('change', function () {
+        speed = mobileMq.matches ? SPEED_MOBILE : SPEED_DESKTOP;
+      });
+    }
 
     window.addEventListener('resize', function () {
-      ensureDuplicateTracks();
+      ensureTwoTracks();
+      normalize();
+      paint();
     });
 
-    function boot() {
-      ensureDuplicateTracks();
-      inner.classList.add('is-ready');
-      if (reducedMotion) {
-        setPaused(true);
+    function start() {
+      if (started) {
         return;
       }
-      setPaused(false);
+      ensureTwoTracks();
+      if (loopWidth() <= 0) {
+        window.setTimeout(start, 80);
+        return;
+      }
+      started = true;
+      offset = 0;
+      paint();
+      window.requestAnimationFrame(tick);
     }
 
-    if (document.readyState === 'complete') {
-      boot();
-    } else {
-      window.addEventListener('load', boot);
-      // Start ASAP so motion is visible before full load
-      window.setTimeout(boot, 120);
-    }
+    start();
+    window.setTimeout(start, 200);
+    window.addEventListener('load', start);
   }
 
-  function bootAll() {
+  function boot() {
     document.querySelectorAll('.ia-brands-section[data-ia-brands-slider]').forEach(initBrandsSlider);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootAll);
+    document.addEventListener('DOMContentLoaded', boot);
   } else {
-    bootAll();
+    boot();
   }
 })();

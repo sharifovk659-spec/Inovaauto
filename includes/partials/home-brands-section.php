@@ -45,7 +45,7 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
     $brandsJsFile = IA_ROOT . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'home-brands-slider.js';
 }
 ?>
-<!-- ia-brands-block-v16 -->
+<!-- ia-brands-block-v17 -->
 <section class="py-3 ia-page-section ia-brands-section ia-brands-section--premium" data-ia-brands-slider aria-label="Популярные бренды">
     <style>
         .ia-brands-section--premium {
@@ -88,9 +88,6 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
             -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 2.5%, #000 97.5%, transparent 100%);
             mask-image: linear-gradient(90deg, transparent 0, #000 2.5%, #000 97.5%, transparent 100%);
         }
-        .ia-brands-section--premium .ia-brands-slider.is-dragging {
-            cursor: grabbing;
-        }
         .ia-brands-section--premium .ia-brands-slider__inner {
             display: flex !important;
             flex-direction: row !important;
@@ -99,12 +96,14 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
             width: max-content;
             min-width: 0;
             will-change: transform;
-            animation: ia-brands-marquee 36s linear infinite;
-            animation-play-state: running;
+            /* CSS fallback until JS starts */
+            animation: ia-brands-marquee 32s linear infinite;
         }
-        .ia-brands-section--premium .ia-brands-slider.is-paused .ia-brands-slider__inner,
-        .ia-brands-section--premium .ia-brands-slider.is-dragging .ia-brands-slider__inner {
-            animation-play-state: paused;
+        .ia-brands-section--premium .ia-brands-slider__inner.is-js-marquee {
+            animation: none !important;
+        }
+        .ia-brands-section--premium .ia-brands-slider.is-dragging {
+            cursor: grabbing;
         }
         @keyframes ia-brands-marquee {
             from { transform: translate3d(0, 0, 0); }
@@ -226,8 +225,8 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
             }
         }
         @media (max-width: 991.98px) {
-            .ia-brands-section--premium .ia-brands-slider__inner {
-                animation-duration: 28s;
+            .ia-brands-section--premium .ia-brands-slider__inner:not(.is-js-marquee) {
+                animation-duration: 24s;
             }
         }
         @media (max-width: 575.98px) {
