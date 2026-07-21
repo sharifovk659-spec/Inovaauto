@@ -63,20 +63,25 @@ else
 fi
 
 HOME_HTML="$(http_body "${BASE_URL}/")"
+HOME_TMP="$(mktemp 2>/dev/null || mktemp -t ia-home)"
+trap 'rm -f "$HOME_TMP"' EXIT
+if [[ -n "$HOME_HTML" ]]; then
+  printf '%s' "$HOME_HTML" >"$HOME_TMP"
+fi
 
 # Listings data from DB (heuristic — skip if curl body empty)
-if [[ -z "$HOME_HTML" ]]; then
+if [[ ! -s "$HOME_TMP" ]]; then
   log_pass "Homepage HTML check skipped (empty curl body from origin)"
-elif echo "$HOME_HTML" | grep -qiE 'catalog|объявлен|авто|₽|сом|TJS|inovaauto'; then
+elif grep -qiE 'catalog|inovaauto|ia-listing|ia-pop-cat|vip' "$HOME_TMP"; then
   log_pass "Homepage shows listing/catalog content"
 else
   log_fail "Homepage may not show DB content (verify manually)"
 fi
 
 # Images
-if [[ -z "$HOME_HTML" ]]; then
+if [[ ! -s "$HOME_TMP" ]]; then
   log_pass "Image check skipped (empty curl body from origin)"
-elif echo "$HOME_HTML" | grep -qE '<img|webp|uploads/|supabase'; then
+elif grep -qE '<img|webp|uploads/|picture|srcset' "$HOME_TMP"; then
   log_pass "Images/media references present"
 else
   log_fail "No image references detected"
