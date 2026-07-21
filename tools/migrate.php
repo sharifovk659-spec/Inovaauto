@@ -142,14 +142,10 @@ foreach ($files as $path) {
     }
 
     try {
-        $pdo->beginTransaction();
+        // MySQL DDL (CREATE TABLE) implicitly commits — do not wrap in a transaction.
         $pdo->exec($sql);
         ia_migration_record($pdo, $name);
-        $pdo->commit();
     } catch (Throwable $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
         fwrite(STDERR, "Migration failed ({$name}): " . $e->getMessage() . "\n");
         exit(1);
     }
