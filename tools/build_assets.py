@@ -22,6 +22,7 @@ CSS_BUILDS = [
 ]
 
 JS_BUILDS = [
+    ('assets/js/ia-preloader.js', 'assets/js/ia-preloader.min.js'),
     ('assets/js/car-share.js', 'assets/js/car-share.min.js'),
     ('assets/js/car-map.js', 'assets/js/car-map.min.js'),
     ('assets/js/home-brands-slider.js', 'assets/js/home-brands-slider.min.js'),

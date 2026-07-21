@@ -53,6 +53,10 @@ $iaBodyExtraClassStr = (string) ($iaBodyExtraClass ?? '');
 $isHomePage = $iaBodyExtraClassStr !== '' && strpos($iaBodyExtraClassStr, 'ia-page-home') !== false;
 $isAddPremium = $iaBodyExtraClassStr !== '' && strpos($iaBodyExtraClassStr, 'ia-add-premium') !== false;
 
+$iaSkipPreloaderPages = ['login.php', 'register.php', 'forgot-password.php', 'reset-password.php'];
+$iaSkipPreloader = in_array($here, $iaSkipPreloaderPages, true)
+    || strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST';
+
 $iaSiteCssHref = function_exists('ia_public_site_css_href')
     ? ia_public_site_css_href()
     : ia_public_asset('assets/site.css') . '?v=173';
@@ -119,9 +123,32 @@ $iaCriticalCssPath = function_exists('ia_critical_above_fold_css_path') ? ia_cri
     if (!empty($GLOBALS['ia_extra_head_html'])) {
         echo $GLOBALS['ia_extra_head_html'];
     }
-    ?>
+    if (!$iaSkipPreloader):
+        $iaPreloaderJsHref = function_exists('ia_script_href')
+            ? ia_script_href('assets/js/ia-preloader.js', 'assets/js/ia-preloader.min.js')
+            : ia_public_asset_version('assets/js/ia-preloader.js');
+        ?>
+    <style id="ia-preloader-critical">
+html.ia-preloader-pending{background:linear-gradient(145deg,#050b18 0%,#0f172a 42%,#1e3a8a 100%)}
+html.ia-preloader-active,html.ia-preloader-active body{overflow:hidden!important}
+.ia-preloader{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:linear-gradient(145deg,#050b18 0%,#0f172a 42%,#1e3a8a 100%);pointer-events:auto}
+.ia-preloader[hidden]{display:none!important}
+.ia-preloader--out{pointer-events:none!important}
+    </style>
+    <noscript><style id="ia-preloader-noscript">.ia-preloader{display:none!important}html.ia-preloader-pending{background:transparent}</style></noscript>
+    <script>
+(function(){try{if(sessionStorage.getItem('ia_preloader_done')==='1')return;document.documentElement.classList.add('ia-preloader-pending')}catch(e){}})();
+    </script>
+    <?php endif; ?>
 </head>
 <body class="ia-site ia-has-logo<?= !empty($iaBodyExtraClass) ? ' ' . ia_h((string) $iaBodyExtraClass) : '' ?><?= $isHomePage ? ' ia-page-home-body' : '' ?>" data-ia-tab-accent="light-blue">
+<?php if (!$iaSkipPreloader): ?>
+<?php require IA_ROOT . '/includes/partials/site-preloader.php'; ?>
+<script src="<?= ia_h($iaPreloaderJsHref) ?>"></script>
+<script>
+(function(){window.setTimeout(function(){try{var r=document.documentElement;r.classList.remove('ia-preloader-pending','ia-preloader-active');var p=document.getElementById('iaPreloader');if(p){p.style.pointerEvents='none';p.setAttribute('hidden','');if(p.parentNode)p.parentNode.removeChild(p)}var b=document.body;if(b){b.style.position='';b.style.top='';b.style.left='';b.style.right='';b.style.width='';b.style.overflow=''}}catch(e){}},3000)})();
+</script>
+<?php endif; ?>
 <header class="ia-site-header ia-site-header--compact sticky-top<?= $isHomePage ? ' ia-site-header--home' : '' ?><?= $isAddPremium ? ' ia-site-header--add-premium' : '' ?>">
     <nav class="navbar navbar-expand-lg ia-nav shadow-sm">
         <div class="container ia-container">

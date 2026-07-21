@@ -1429,15 +1429,27 @@ body.ia-site {
   font-weight: 600;
   text-align: center;
   color: var(--ia-text);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  word-break: break-word;
+  hyphens: auto;
+  min-height: calc(3 * 1.25em);
+  width: 100%;
+  align-self: stretch;
   transition: color 0.2s ease;
 }
 
 .ia-pop-cat-head {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 0.15rem;
   width: 100%;
+  flex: 0 0 auto;
+  min-height: calc(3 * 1.25em + 0.15rem);
 }
 
 .ia-pop-cat-count {
@@ -1518,6 +1530,12 @@ body.ia-site {
     font-size: 0.78rem;
     text-align: left;
     line-height: 1.25;
+    min-height: calc(3 * 1.25em);
+    -webkit-line-clamp: 3;
+  }
+
+  .ia-page-home .ia-pop-cat-head {
+    min-height: calc(3 * 1.25em + 0.2rem);
   }
 
   .ia-page-home .ia-pop-cat-count {
@@ -13067,6 +13085,12 @@ a.ia-contact-info-value:hover {
       font-weight: 700;
       text-align: center;
       line-height: 1.22;
+      min-height: calc(3 * 1.22em);
+      -webkit-line-clamp: 3;
+    }
+
+    body.ia-page-home .ia-pop-cat-head {
+      min-height: calc(3 * 1.22em + 0.1rem);
     }
 
     body.ia-page-home .ia-pop-cat-count {
@@ -15192,3 +15216,137 @@ html[data-ia-palette='sepia'] .ia-brands-section--premium .ia-brand-card-count {
     visibility: visible !important;
   }
 }
+
+/* Premium session preloader (public pages, first visit per tab) */
+html.ia-preloader-pending {
+  background: linear-gradient(145deg, #050b18 0%, #0f172a 42%, #1e3a8a 100%);
+}
+
+html.ia-preloader-active,
+html.ia-preloader-active body {
+  overflow: hidden;
+}
+
+.ia-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 1.75rem);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(61, 126, 255, 0.18), transparent 70%),
+    linear-gradient(145deg, #050b18 0%, #0f172a 42%, #1e3a8a 100%);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.42s ease, visibility 0.42s ease;
+  pointer-events: auto;
+}
+
+.ia-preloader[hidden] {
+  display: none !important;
+}
+
+.ia-preloader--out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ia-preloader__inner {
+  width: min(92vw, 320px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  transform: translateY(0);
+  opacity: 1;
+  animation: iaPreloaderIn 0.72s ease both;
+}
+
+.ia-preloader__logo {
+  width: min(72vw, 220px);
+  animation: iaPreloaderPulse 2.6s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.ia-preloader__logo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.35));
+}
+
+.ia-preloader__text {
+  margin: 0;
+  font-size: clamp(0.88rem, 2.8vw, 0.98rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgba(226, 232, 240, 0.94);
+}
+
+.ia-preloader__track {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.24);
+  overflow: hidden;
+}
+
+.ia-preloader__bar {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3d7eff 0%, #6d28d9 55%, #8b5cf6 100%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.ia-preloader__pct {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(148, 163, 184, 0.88);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes iaPreloaderIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes iaPreloaderPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.035);
+    opacity: 0.93;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ia-preloader,
+  .ia-preloader__inner,
+  .ia-preloader__logo {
+    animation: none !important;
+    transition-duration: 0.15s !important;
+  }
+
+  .ia-preloader__logo {
+    transform: none !important;
+  }
+}
+
