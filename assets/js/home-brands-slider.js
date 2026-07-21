@@ -1,10 +1,12 @@
+/**
+ * InnovaAuto — popular brands continuous marquee (PC + mobile).
+ * CSS animation drives motion; JS only pauses on drag / hover / reduced-motion.
+ */
 (function () {
   'use strict';
 
-  var PX_MOBILE = 0.55;
-  var PX_DESKTOP = 0.45;
-  var USER_PAUSE_MS = 3200;
-  var DRAG_THRESHOLD = 4;
+  var USER_PAUSE_MS = 2800;
+  var DRAG_THRESHOLD = 5;
 
   function initBrandsSlider(section) {
     var viewport = section.querySelector('.ia-brands-slider');
@@ -14,18 +16,13 @@
     }
 
     var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var mobileMq = window.matchMedia('(max-width: 991.98px)');
-    var pxPerFrame = mobileMq.matches ? PX_MOBILE : PX_DESKTOP;
-    var offset = 0;
-    var tabPaused = false;
-    var userActive = false;
     var resumeTimer = null;
-    var rafId = null;
     var dragging = false;
     var dragStartX = 0;
-    var dragStartOffset = 0;
+    var dragBaseX = 0;
     var pointerId = null;
     var touchPending = false;
+    var currentX = 0;
 
     function firstTrack() {
       return inner.querySelector('.ia-brands-slider__track');
@@ -33,75 +30,86 @@
 
     function trackWidth() {
       var track = firstTrack();
-      if (!track) {
-        return 0;
-      }
-      return track.getBoundingClientRect().width;
+      return track ? track.getBoundingClientRect().width : 0;
     }
 
-    function loopWidth() {
-      return trackWidth();
-    }
-
-    function ensureTracksFill() {
+    function ensureDuplicateTracks() {
       var track = firstTrack();
       if (!track) {
         return;
       }
-      var unit = trackWidth();
-      var viewW = viewport.clientWidth;
-      if (unit <= 0 || viewW <= 0) {
-        return;
-      }
       var tracks = inner.querySelectorAll('.ia-brands-slider__track');
-      var needed = Math.max(2, Math.ceil((viewW * 2) / unit) + 1);
-      while (tracks.length < needed) {
+      // Exactly 2 equal tracks so CSS translate3d(-50%) loops seamlessly
+      while (tracks.length < 2) {
         var clone = track.cloneNode(true);
         clone.setAttribute('aria-hidden', 'true');
         inner.appendChild(clone);
         tracks = inner.querySelectorAll('.ia-brands-slider__track');
       }
-    }
-
-    function applyTransform() {
-      inner.style.transform = 'translate3d(' + (-offset) + 'px,0,0)';
-    }
-
-    function normalizeOffset() {
-      var half = loopWidth();
-      if (half <= 0) {
-        return;
-      }
-      while (offset >= half) {
-        offset -= half;
-      }
-      while (offset < 0) {
-        offset += half;
+      // Remove extras that would break -50% marquee
+      while (tracks.length > 2) {
+        inner.removeChild(tracks[tracks.length - 1]);
+        tracks = inner.querySelectorAll('.ia-brands-slider__track');
       }
     }
 
-    function tick() {
-      rafId = window.requestAnimationFrame(tick);
-      if (tabPaused || userActive || reducedMotion || dragging) {
-        return;
+    function setPaused(paused) {
+      if (paused) {
+        viewport.classList.add('is-paused');
+        inner.style.animationPlayState = 'paused';
+      } else {
+        viewport.classList.remove('is-paused');
+        if (!reducedMotion) {
+          inner.style.animationPlayState = 'running';
+        }
       }
-      offset += pxPerFrame;
-      normalizeOffset();
-      applyTransform();
     }
 
     function pauseForUser(ms) {
-      userActive = true;
+      setPaused(true);
       if (resumeTimer) {
         window.clearTimeout(resumeTimer);
       }
       resumeTimer = window.setTimeout(function () {
-        userActive = false;
+        if (!dragging) {
+          // Clear manual transform so CSS marquee continues cleanly
+          inner.style.transform = '';
+          setPaused(false);
+        }
       }, ms);
     }
 
-    function updateSpeed() {
-      pxPerFrame = mobileMq.matches ? PX_MOBILE : PX_DESKTOP;
+    function readCurrentTranslateX() {
+      var style = window.getComputedStyle(inner);
+      var t = style.transform;
+      if (!t || t === 'none') {
+        return 0;
+      }
+      var m = t.match(/matrix\(([^)]+)\)/);
+      if (m) {
+        var parts = m[1].split(',');
+        return parseFloat(parts[4]) || 0;
+      }
+      var m3 = t.match(/matrix3d\(([^)]+)\)/);
+      if (m3) {
+        var p3 = m3[1].split(',');
+        return parseFloat(p3[12]) || 0;
+      }
+      return 0;
+    }
+
+    function applyDragX(x) {
+      var half = trackWidth();
+      if (half > 0) {
+        while (x <= -half) {
+          x += half;
+        }
+        while (x > 0) {
+          x -= half;
+        }
+      }
+      currentX = x;
+      inner.style.transform = 'translate3d(' + x + 'px,0,0)';
     }
 
     function endDrag() {
@@ -115,32 +123,41 @@
       pauseForUser(USER_PAUSE_MS);
     }
 
+    viewport.addEventListener('mouseenter', function () {
+      if (!reducedMotion) {
+        setPaused(true);
+      }
+    });
+    viewport.addEventListener('mouseleave', function () {
+      if (!dragging && !reducedMotion) {
+        pauseForUser(600);
+      }
+    });
+
     viewport.addEventListener('touchstart', function (e) {
       if (!e.touches.length) {
         return;
       }
       touchPending = true;
       dragStartX = e.touches[0].clientX;
-      dragStartOffset = offset;
+      dragBaseX = readCurrentTranslateX();
+      setPaused(true);
     }, { passive: true });
 
     viewport.addEventListener('touchmove', function (e) {
       if (!e.touches.length || (!touchPending && !dragging)) {
         return;
       }
-      var dx = dragStartX - e.touches[0].clientX;
+      var dx = e.touches[0].clientX - dragStartX;
       if (touchPending && Math.abs(dx) >= DRAG_THRESHOLD) {
         dragging = true;
-        userActive = true;
         touchPending = false;
         viewport.classList.add('is-dragging');
       }
       if (!dragging) {
         return;
       }
-      offset = dragStartOffset + dx;
-      normalizeOffset();
-      applyTransform();
+      applyDragX(dragBaseX + dx);
     }, { passive: true });
 
     viewport.addEventListener('touchend', endDrag, { passive: true });
@@ -155,9 +172,12 @@
       }
       pointerId = e.pointerId;
       dragStartX = e.clientX;
-      dragStartOffset = offset;
+      dragBaseX = readCurrentTranslateX();
+      setPaused(true);
       if (viewport.setPointerCapture) {
-        viewport.setPointerCapture(e.pointerId);
+        try {
+          viewport.setPointerCapture(e.pointerId);
+        } catch (err) {}
       }
     });
 
@@ -165,18 +185,15 @@
       if (e.pointerId !== pointerId) {
         return;
       }
-      var dx = dragStartX - e.clientX;
+      var dx = e.clientX - dragStartX;
       if (!dragging && Math.abs(dx) >= DRAG_THRESHOLD) {
         dragging = true;
-        userActive = true;
         viewport.classList.add('is-dragging');
       }
       if (!dragging) {
         return;
       }
-      offset = dragStartOffset + dx;
-      normalizeOffset();
-      applyTransform();
+      applyDragX(dragBaseX + dx);
     });
 
     viewport.addEventListener('pointerup', function (e) {
@@ -194,45 +211,33 @@
     });
 
     document.addEventListener('visibilitychange', function () {
-      tabPaused = document.hidden;
+      if (document.hidden) {
+        setPaused(true);
+      } else if (!dragging && !reducedMotion) {
+        setPaused(false);
+      }
     });
-
-    if (typeof mobileMq.addEventListener === 'function') {
-      mobileMq.addEventListener('change', updateSpeed);
-    } else if (typeof mobileMq.addListener === 'function') {
-      mobileMq.addListener(updateSpeed);
-    }
 
     window.addEventListener('resize', function () {
-      updateSpeed();
-      ensureTracksFill();
-      normalizeOffset();
-      applyTransform();
+      ensureDuplicateTracks();
     });
 
-    function startWhenReady(attempts) {
-      attempts = attempts || 0;
-      ensureTracksFill();
-      if (loopWidth() <= 0 && attempts < 60) {
-        window.setTimeout(function () {
-          startWhenReady(attempts + 1);
-        }, 100);
+    function boot() {
+      ensureDuplicateTracks();
+      inner.classList.add('is-ready');
+      if (reducedMotion) {
+        setPaused(true);
         return;
       }
-      offset = 0;
-      inner.classList.add('is-js-active');
-      applyTransform();
-      if (!reducedMotion) {
-        rafId = window.requestAnimationFrame(tick);
-      }
+      setPaused(false);
     }
 
     if (document.readyState === 'complete') {
-      startWhenReady(0);
+      boot();
     } else {
-      window.addEventListener('load', function () {
-        startWhenReady(0);
-      });
+      window.addEventListener('load', boot);
+      // Start ASAP so motion is visible before full load
+      window.setTimeout(boot, 120);
     }
   }
 

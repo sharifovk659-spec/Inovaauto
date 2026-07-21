@@ -45,7 +45,7 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
     $brandsJsFile = IA_ROOT . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'home-brands-slider.js';
 }
 ?>
-<!-- ia-brands-block-v15 -->
+<!-- ia-brands-block-v16 -->
 <section class="py-3 ia-page-section ia-brands-section ia-brands-section--premium" data-ia-brands-slider aria-label="Популярные бренды">
     <style>
         .ia-brands-section--premium {
@@ -99,10 +99,12 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
             width: max-content;
             min-width: 0;
             will-change: transform;
-            animation: ia-brands-marquee 50s linear infinite;
+            animation: ia-brands-marquee 36s linear infinite;
+            animation-play-state: running;
         }
-        .ia-brands-section--premium .ia-brands-slider__inner.is-js-active {
-            animation: none;
+        .ia-brands-section--premium .ia-brands-slider.is-paused .ia-brands-slider__inner,
+        .ia-brands-section--premium .ia-brands-slider.is-dragging .ia-brands-slider__inner {
+            animation-play-state: paused;
         }
         @keyframes ia-brands-marquee {
             from { transform: translate3d(0, 0, 0); }
@@ -224,8 +226,8 @@ if (!$brandsJsDev && !is_readable($brandsJsFile)) {
             }
         }
         @media (max-width: 991.98px) {
-            .ia-brands-slider__inner:not(.is-js-active) {
-                animation-duration: 38s;
+            .ia-brands-section--premium .ia-brands-slider__inner {
+                animation-duration: 28s;
             }
         }
         @media (max-width: 575.98px) {
