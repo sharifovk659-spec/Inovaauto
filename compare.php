@@ -7,6 +7,7 @@ use InnovaAuto\Security\Csrf;
 define('IA_ROOT', __DIR__);
 require_once IA_ROOT . '/includes/public_bootstrap.php';
 require_once IA_ROOT . '/includes/public_queries.php';
+require_once IA_ROOT . '/includes/compare_analysis.php';
 
 $pdo = ia_db();
 $cu = ia_platform_current_user();
@@ -28,6 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $ids = ia_pub_compare_ids($pdo, $uid);
 $items = ia_pub_compare_listings($pdo, $ids);
+$compareAnalysis = null;
+if (count($items) >= 2) {
+    $analysisListings = ia_compare_analysis_load_by_ids($pdo, $ids);
+    if (count($analysisListings) >= 2) {
+        $compareAnalysis = ia_compare_analysis($analysisListings);
+    }
+}
 
 $pageTitle = 'Сравнение автомобилей';
 $iaBodyExtraClass = 'ia-page-compare';
@@ -220,8 +228,17 @@ require IA_ROOT . '/includes/partials/site-header.php';
                     <?php endforeach; ?>
                 </div>
             </div>
+
+            <?php if ($compareAnalysis !== null): ?>
+                <?php $compareAiIdsKey = implode('-', array_map('intval', $ids)); ?>
+                <?php require IA_ROOT . '/includes/partials/compare-intelligent-analysis.php'; ?>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </section>
+
+<?php if ($compareAnalysis !== null): ?>
+<script src="<?= ia_h(ia_script_href('assets/js/compare-ai.js', 'assets/js/compare-ai.min.js')) ?>" defer></script>
+<?php endif; ?>
 
 <?php require IA_ROOT . '/includes/partials/site-footer.php'; ?>
