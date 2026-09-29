@@ -427,6 +427,21 @@
   text-decoration: underline;
 }
 
+.ia-auth-text-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ia-auth-blue);
+  font-weight: 600;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ia-auth-text-btn:hover {
+  text-decoration: underline;
+}
+
 .ia-auth-login-forgot {
   margin: 10px 0 0;
   text-align: center;

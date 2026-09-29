@@ -30,6 +30,7 @@ require IA_ROOT . '/includes/partials/site-header.php';
     <div class="container ia-container" style="max-width: 440px;">
         <h1 class="h4 mb-3">Восстановление пароля</h1>
         <p class="small text-secondary mb-4">Укажите email аккаунта. Если он зарегистрирован, мы отправим ссылку для сброса пароля.</p>
+        <?php if ($err = ia_flash('reset_error')): ?><div class="alert alert-danger"><?= ia_h((string) $err) ?></div><?php endif; ?>
         <?php if ($info = ia_flash('reset_info')): ?><div class="alert alert-info"><?= ia_h((string) $info) ?></div><?php endif; ?>
         <form method="post" class="card p-4 ia-form-surface">
             <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">

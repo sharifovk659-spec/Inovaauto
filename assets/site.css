@@ -9685,6 +9685,23 @@ body.ia-page-add-listing.ia-add-premium .ia-add-section-num {
   opacity: 1;
 }
 
+/* Белая карточка формы: тёмная тема не должна красить поле в чёрный */
+html[data-bs-theme='dark'] body.ia-site .ia-form-surface .form-control,
+html[data-bs-theme='dark'] body.ia-site .ia-form-surface .form-select,
+html[data-bs-theme='dark'] body.ia-site .ia-form-surface .form-control:focus,
+html[data-bs-theme='dark'] body.ia-site .ia-form-surface .form-select:focus {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827;
+  border-color: #c5cdd8 !important;
+}
+
+html[data-bs-theme='dark'] body.ia-site .ia-form-surface .form-control::placeholder {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280;
+}
+
 .ia-form-surface .form-control:disabled {
   background-color: #eef1f6;
   border-color: #d1d9e6;

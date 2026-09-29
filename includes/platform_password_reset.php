@@ -15,7 +15,7 @@ function ia_platform_password_reset_request(string $email): void
         return;
     }
 
-    $st = ia_db()->prepare("SELECT id FROM platform_users WHERE email = ? AND status = 'active' LIMIT 1");
+    $st = ia_db()->prepare("SELECT id FROM platform_users WHERE LOWER(email) = ? AND status = 'active' LIMIT 1");
     $st->execute([$email]);
     $row = $st->fetch();
     if (!$row) {
@@ -40,10 +40,10 @@ function ia_platform_password_reset_request(string $email): void
 
     $link = ia_public_url('reset-password.php') . '?token=' . rawurlencode($plainToken);
 
-    if (!empty($cfg['log_reset_link_instead_of_mail'])) {
-        ia_append_reset_log($email, $link);
-    } else {
-        ia_mail_send_reset($email, $link);
+    if (!ia_mail_send_reset($email, $link)) {
+        ia_flash('reset_error', 'Не удалось отправить письмо со ссылкой. Попробуйте ещё раз через несколько минут.');
+
+        return;
     }
 
     ia_flash('reset_info', 'Если указанный адрес существует, на него отправлена инструкция по восстановлению пароля.');

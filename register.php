@@ -7,6 +7,7 @@ use InnovaAuto\Security\Csrf;
 define('IA_ROOT', __DIR__);
 require_once IA_ROOT . '/includes/public_bootstrap.php';
 require_once IA_ROOT . '/includes/auth_page_bg.php';
+require_once IA_ROOT . '/includes/platform_registration.php';
 
 ia_platform_handle_register_post();
 
@@ -26,6 +27,7 @@ $GLOBALS['ia_extra_head_html'] = '<link href="https://fonts.googleapis.com/css2?
     . '<link rel="stylesheet" href="' . ia_h($authCssHref) . '">';
 
 $loginUrl = ia_public_url('login.php');
+$pendingReg = ia_platform_reg_pending_public();
 $flashError = ia_flash('pub_error');
 $flashOk = ia_flash('pub_ok');
 
@@ -44,8 +46,13 @@ require IA_ROOT . '/includes/partials/site-header.php';
             </a>
 
             <header class="ia-auth-login-head">
-                <h1 class="ia-auth-login-title">Создать аккаунт</h1>
-                <p class="ia-auth-login-lead">Заполните данные для регистрации</p>
+                <?php if ($pendingReg !== null): ?>
+                    <h1 class="ia-auth-login-title">Подтвердите почту</h1>
+                    <p class="ia-auth-login-lead">Код отправлен на <?= ia_h($pendingReg['email_masked']) ?></p>
+                <?php else: ?>
+                    <h1 class="ia-auth-login-title">Создать аккаунт</h1>
+                    <p class="ia-auth-login-lead">Заполните данные для регистрации</p>
+                <?php endif; ?>
             </header>
 
             <?php if ($flashError !== null): ?>
@@ -55,6 +62,33 @@ require IA_ROOT . '/includes/partials/site-header.php';
                 <div class="ia-auth-alert ia-auth-alert--ok" role="status"><?= ia_h((string) $flashOk) ?></div>
             <?php endif; ?>
 
+            <?php if ($pendingReg !== null): ?>
+            <form method="post" class="ia-auth-form" id="iaAuthRegisterConfirm">
+                <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">
+                <input type="hidden" name="action" value="register_confirm">
+
+                <label class="ia-auth-field">
+                    <span class="ia-auth-label">Код из письма</span>
+                    <input type="text" name="code" class="ia-auth-input ia-auth-input--plain" required inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000">
+                </label>
+
+                <button type="submit" class="ia-auth-btn ia-auth-btn--primary ia-auth-btn--block">Подтвердить</button>
+            </form>
+
+            <p class="ia-auth-register-foot">
+                <button type="submit" class="ia-auth-text-btn" form="iaRegResend">Отправить код ещё раз</button>
+                <span aria-hidden="true"> · </span>
+                <button type="submit" class="ia-auth-text-btn" form="iaRegCancel">Изменить данные</button>
+            </p>
+            <form id="iaRegResend" method="post" hidden>
+                <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">
+                <input type="hidden" name="action" value="register_resend">
+            </form>
+            <form id="iaRegCancel" method="post" hidden>
+                <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">
+                <input type="hidden" name="action" value="register_cancel">
+            </form>
+            <?php else: ?>
             <form method="post" class="ia-auth-form ia-auth-form--register" id="iaAuthRegisterForm">
                 <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">
                 <input type="hidden" name="action" value="register">
@@ -104,6 +138,7 @@ require IA_ROOT . '/includes/partials/site-header.php';
 
                 <button type="submit" class="ia-auth-btn ia-auth-btn--primary ia-auth-btn--block">Создать аккаунт</button>
             </form>
+            <?php endif; ?>
 
             <p class="ia-auth-register-foot">
                 Уже есть аккаунт?

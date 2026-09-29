@@ -38,6 +38,9 @@ require __DIR__ . '/partials/head.php';
                             <div class="text-secondary small">Восстановление пароля</div>
                         </div>
 
+                        <?php if ($err = ia_flash('reset_error')): ?>
+                            <div class="alert alert-danger small"><?= ia_h((string) $err) ?></div>
+                        <?php endif; ?>
                         <?php if ($info = ia_flash('reset_info')): ?>
                             <div class="alert alert-info small"><?= ia_h((string) $info) ?></div>
                         <?php endif; ?>

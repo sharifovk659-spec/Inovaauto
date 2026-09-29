@@ -83,32 +83,53 @@ function ia_platform_login_user(array $user): void
 
 function ia_platform_find_by_email(string $email): ?array
 {
-    $email = trim($email);
+    $email = strtolower(trim($email));
     if ($email === '') {
         return null;
     }
-    $st = ia_db()->prepare('SELECT * FROM platform_users WHERE email = ? LIMIT 1');
+    $st = ia_db()->prepare('SELECT * FROM platform_users WHERE LOWER(email) = ? LIMIT 1');
     $st->execute([$email]);
     $row = $st->fetch();
 
     return $row ?: null;
 }
 
-function ia_platform_register(string $name, string $phone, string $email, string $password, string $accountType): bool
-{
-    $email = trim($email);
-    $hash = password_hash($password, PASSWORD_DEFAULT);
+function ia_platform_insert_user(
+    string $name,
+    string $phone,
+    string $email,
+    string $passwordHash,
+    string $accountType
+): bool {
+    $email = strtolower(trim($email));
     $st = ia_db()->prepare(
         'INSERT INTO platform_users (name, phone, email, password_hash, account_type, status) VALUES (?, ?, ?, ?, ?, \'active\')'
     );
 
     try {
-        return $st->execute([trim($name), trim($phone), $email, $hash, $accountType === 'dealer' ? 'dealer' : 'private']);
+        return $st->execute([
+            trim($name),
+            trim($phone),
+            $email,
+            $passwordHash,
+            $accountType === 'dealer' ? 'dealer' : 'private',
+        ]);
     } catch (\PDOException $e) {
         error_log('platform_register: ' . $e->getMessage());
 
         return false;
     }
+}
+
+function ia_platform_register(string $name, string $phone, string $email, string $password, string $accountType): bool
+{
+    return ia_platform_insert_user(
+        $name,
+        $phone,
+        $email,
+        password_hash($password, PASSWORD_DEFAULT),
+        $accountType
+    );
 }
 
 function ia_platform_handle_login_post(): void
@@ -169,7 +190,11 @@ function ia_public_safe_redirect_full(string $raw): string
 
 function ia_platform_handle_register_post(): void
 {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || ($_POST['action'] ?? '') !== 'register') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return;
+    }
+    $action = (string) ($_POST['action'] ?? '');
+    if (!in_array($action, ['register', 'register_confirm', 'register_resend', 'register_cancel'], true)) {
         return;
     }
     if (!Csrf::validate($_POST['_csrf'] ?? null)) {
@@ -177,6 +202,48 @@ function ia_platform_handle_register_post(): void
 
         return;
     }
+
+    require_once IA_ROOT . '/includes/platform_registration.php';
+
+    if ($action === 'register_cancel') {
+        ia_platform_reg_clear();
+        ia_redirect(ia_public_url('register.php'));
+    }
+
+    if ($action === 'register_resend') {
+        $result = ia_platform_reg_resend();
+        if ($result === 'ok') {
+            ia_flash('pub_ok', 'Новый код отправлен на почту.');
+        } elseif ($result === 'cooldown') {
+            ia_flash('pub_error', 'Подождите минуту перед повторной отправкой кода.');
+        } elseif ($result === 'mail_failed') {
+            ia_flash('pub_error', 'Не удалось отправить письмо. Попробуйте ещё раз через несколько минут.');
+        } else {
+            ia_flash('pub_error', 'Срок кода истёк. Заполните форму ещё раз.');
+        }
+        ia_redirect(ia_public_url('register.php'));
+    }
+
+    if ($action === 'register_confirm') {
+        $result = ia_platform_reg_confirm(ia_post_text('code', 12));
+        if ($result === 'ok') {
+            ia_flash('pub_ok', 'Добро пожаловать!');
+            ia_redirect(ia_public_url('index.php'));
+        }
+        if ($result === 'bad_code') {
+            ia_flash('pub_error', 'Неверный код. Проверьте письмо и попробуйте ещё раз.');
+        } elseif ($result === 'locked') {
+            ia_flash('pub_error', 'Слишком много попыток. Заполните форму регистрации ещё раз.');
+        } elseif ($result === 'email_taken') {
+            ia_flash('pub_error', 'Пользователь с таким email уже зарегистрирован.');
+        } elseif ($result === 'save_failed') {
+            ia_flash('pub_error', 'Не удалось создать учётную запись.');
+        } else {
+            ia_flash('pub_error', 'Срок кода истёк. Заполните форму ещё раз.');
+        }
+        ia_redirect(ia_public_url('register.php'));
+    }
+
     $name = ia_post_text('name', 150);
     $phone = ia_post_phone('phone');
     $email = ia_post_email('email');
@@ -198,15 +265,11 @@ function ia_platform_handle_register_post(): void
 
         return;
     }
-    if (!ia_platform_register($name, $phone, $email, $password, $accountType)) {
-        ia_flash('pub_error', 'Не удалось создать учётную запись.');
+    if (!ia_platform_reg_begin($name, $phone, $email, $password, $accountType)) {
+        ia_flash('pub_error', 'Не удалось отправить код на почту. Проверьте адрес и попробуйте ещё раз.');
 
         return;
     }
-    $u = ia_platform_find_by_email($email);
-    if ($u !== null) {
-        ia_platform_login_user($u);
-    }
-    ia_flash('pub_ok', 'Добро пожаловать!');
-    ia_redirect(ia_public_url('index.php'));
+    ia_flash('pub_ok', 'Код подтверждения отправлен на почту.');
+    ia_redirect(ia_public_url('register.php'));
 }

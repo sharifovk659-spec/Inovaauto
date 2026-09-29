@@ -163,7 +163,7 @@ $cfg = [
         'secret' => (string) (getenv('IA_RECAPTCHA_SECRET') ?: ''),
     ],
     'mail' => [
-        'from' => (string) (getenv('IA_MAIL_FROM') ?: 'noreply@innovaauto.local'),
+        'from' => (string) (getenv('IA_MAIL_FROM') ?: ''),
     ],
     'security' => [
         'max_login_attempts' => 5,
@@ -172,7 +172,7 @@ $cfg = [
         'admin_idle_seconds' => max(0, (int) (getenv('IA_ADMIN_IDLE_SECONDS') ?: '1800')),
         'reset_token_minutes' => 60,
         'log_reset_link_instead_of_mail' => filter_var(
-            getenv('IA_DEBUG_RESET_LOG') ?: 'true',
+            getenv('IA_DEBUG_RESET_LOG') ?: 'false',
             FILTER_VALIDATE_BOOLEAN
         ),
     ],
