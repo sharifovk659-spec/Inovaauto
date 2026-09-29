@@ -215,7 +215,7 @@ function ia_platform_handle_register_post(): void
         if ($result === 'ok') {
             ia_flash('pub_ok', 'Новый код отправлен на почту.');
         } elseif ($result === 'cooldown') {
-            ia_flash('pub_error', 'Подождите минуту перед повторной отправкой кода.');
+            ia_flash('pub_error', 'Новый код можно отправить, когда таймер дойдёт до нуля.');
         } elseif ($result === 'mail_failed') {
             ia_flash('pub_error', 'Не удалось отправить письмо. Попробуйте ещё раз через несколько минут.');
         } else {
@@ -239,7 +239,12 @@ function ia_platform_handle_register_post(): void
         } elseif ($result === 'save_failed') {
             ia_flash('pub_error', 'Не удалось создать учётную запись.');
         } else {
-            ia_flash('pub_error', 'Срок кода истёк. Заполните форму ещё раз.');
+            $resent = ia_platform_reg_resend();
+            if ($resent === 'ok') {
+                ia_flash('pub_ok', 'Срок кода истёк. Новый код отправлен на почту.');
+            } else {
+                ia_flash('pub_error', 'Срок кода истёк. Не удалось отправить новый код.');
+            }
         }
         ia_redirect(ia_public_url('register.php'));
     }

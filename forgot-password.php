@@ -26,13 +26,13 @@ $pageTitle = 'Восстановление пароля';
 require IA_ROOT . '/includes/partials/site-header.php';
 ?>
 
-<section class="py-5 ia-page-section">
-    <div class="container ia-container" style="max-width: 440px;">
-        <h1 class="h4 mb-3">Восстановление пароля</h1>
-        <p class="small text-secondary mb-4">Укажите email аккаунта. Если он зарегистрирован, мы отправим ссылку для сброса пароля.</p>
-        <?php if ($err = ia_flash('reset_error')): ?><div class="alert alert-danger"><?= ia_h((string) $err) ?></div><?php endif; ?>
-        <?php if ($info = ia_flash('reset_info')): ?><div class="alert alert-info"><?= ia_h((string) $info) ?></div><?php endif; ?>
-        <form method="post" class="card p-4 ia-form-surface">
+<section class="ia-page-section ia-reset-page">
+    <div class="ia-reset-wrap">
+        <h1 class="ia-reset-title">Восстановление пароля</h1>
+        <p class="small text-secondary ia-reset-lead">Укажите email аккаунта. Если он зарегистрирован, мы отправим ссылку для сброса пароля.</p>
+        <?php if ($err = ia_flash('reset_error')): ?><div class="alert alert-danger ia-reset-alert"><?= ia_h((string) $err) ?></div><?php endif; ?>
+        <?php if ($info = ia_flash('reset_info')): ?><div class="alert alert-info ia-reset-alert"><?= ia_h((string) $info) ?></div><?php endif; ?>
+        <form method="post" class="card ia-form-surface ia-reset-card">
             <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">
             <div class="mb-3">
                 <label class="form-label">Email</label>

@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 require_once IA_ROOT . '/includes/password_reset.php';
 
-const IA_REG_CODE_TTL = 900;
+const IA_REG_CODE_TTL = 50;
+const IA_REG_CODE_LENGTH = 4;
 const IA_REG_CODE_MAX_ATTEMPTS = 5;
-const IA_REG_RESEND_COOLDOWN = 60;
+const IA_REG_RESEND_COOLDOWN = 50;
+
+function ia_platform_reg_new_code(): string
+{
+    $max = (10 ** IA_REG_CODE_LENGTH) - 1;
+
+    return str_pad((string) random_int(0, $max), IA_REG_CODE_LENGTH, '0', STR_PAD_LEFT);
+}
 
 function ia_platform_mask_email(string $email): string
 {
@@ -25,16 +33,16 @@ function ia_platform_mask_email(string $email): string
 function ia_platform_reg_pending(): ?array
 {
     $pending = $_SESSION['ia_reg_pending'] ?? null;
-    if (!is_array($pending) || empty($pending['email']) || empty($pending['code_hash'])) {
-        return null;
-    }
-    if ((int) ($pending['expires_at'] ?? 0) < time()) {
-        unset($_SESSION['ia_reg_pending']);
-
+    if (!is_array($pending) || empty($pending['email']) || empty($pending['password_hash'])) {
         return null;
     }
 
     return $pending;
+}
+
+function ia_platform_reg_seconds_left(array $pending): int
+{
+    return max(0, (int) ($pending['expires_at'] ?? 0) - time());
 }
 
 function ia_platform_reg_clear(): void
@@ -43,18 +51,10 @@ function ia_platform_reg_clear(): void
 }
 
 /**
- * @return array{email_masked:string}|null
+ * @return array{email_masked:string,seconds_left:int}|null
  */
 function ia_platform_reg_pending_public(): ?array
 {
-    $raw = $_SESSION['ia_reg_pending'] ?? null;
-    if (is_array($raw) && (int) ($raw['expires_at'] ?? 0) > 0 && (int) $raw['expires_at'] < time()) {
-        ia_platform_reg_clear();
-        ia_flash('pub_error', 'Срок кода истёк. Заполните форму ещё раз.');
-
-        return null;
-    }
-
     $pending = ia_platform_reg_pending();
     if ($pending === null) {
         return null;
@@ -62,6 +62,7 @@ function ia_platform_reg_pending_public(): ?array
 
     return [
         'email_masked' => ia_platform_mask_email((string) $pending['email']),
+        'seconds_left' => ia_platform_reg_seconds_left($pending),
     ];
 }
 
@@ -70,7 +71,7 @@ function ia_platform_reg_send_code_mail(string $email, string $code): bool
     $subject = 'InnovaAuto — код подтверждения';
     $body = "Здравствуйте!\r\n\r\n"
         . "Код для завершения регистрации: " . $code . "\r\n\r\n"
-        . "Код действует 15 минут. Никому его не сообщайте.\r\n"
+        . "Код действует 50 секунд. Никому его не сообщайте.\r\n"
         . "Если вы не регистрировались на InnovaAuto, просто удалите это письмо.\r\n";
 
     return ia_mail_deliver($email, $subject, $body);
@@ -95,7 +96,7 @@ function ia_platform_reg_begin(
     string $password,
     string $accountType
 ): bool {
-    $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $code = ia_platform_reg_new_code();
     if (!ia_platform_reg_send_code_mail($email, $code)) {
         return false;
     }
@@ -118,11 +119,11 @@ function ia_platform_reg_resend(): string
         return 'missing';
     }
     $sentAt = (int) ($pending['sent_at'] ?? 0);
-    if ($sentAt > 0 && (time() - $sentAt) < IA_REG_RESEND_COOLDOWN) {
+    if (ia_platform_reg_seconds_left($pending) > 1 && $sentAt > 0 && (time() - $sentAt) < IA_REG_RESEND_COOLDOWN) {
         return 'cooldown';
     }
 
-    $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $code = ia_platform_reg_new_code();
     if (!ia_platform_reg_send_code_mail((string) $pending['email'], $code)) {
         return 'mail_failed';
     }
@@ -143,8 +144,12 @@ function ia_platform_reg_confirm(string $code): string
         return 'expired';
     }
 
+    if (ia_platform_reg_seconds_left($pending) <= 0) {
+        return 'expired';
+    }
+
     $code = preg_replace('/\D+/', '', $code) ?? '';
-    if (strlen($code) !== 6) {
+    if (strlen($code) !== IA_REG_CODE_LENGTH) {
         return 'bad_code';
     }
 

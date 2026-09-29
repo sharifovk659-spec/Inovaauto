@@ -67,9 +67,12 @@ require IA_ROOT . '/includes/partials/site-header.php';
                 <input type="hidden" name="_csrf" value="<?= ia_h(Csrf::token()) ?>">
                 <input type="hidden" name="action" value="register_confirm">
 
+                <p class="ia-auth-code-timer" id="iaRegTimer" data-seconds="<?= (int) $pendingReg['seconds_left'] ?>" data-auto="<?= ($pendingReg['seconds_left'] <= 0 && $flashError === null) ? '1' : '0' ?>">
+                    Код действует ещё <span id="iaRegTimerNum"><?= (int) $pendingReg['seconds_left'] ?></span> с
+                </p>
                 <label class="ia-auth-field">
                     <span class="ia-auth-label">Код из письма</span>
-                    <input type="text" name="code" class="ia-auth-input ia-auth-input--plain" required inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000">
+                    <input type="text" name="code" class="ia-auth-input ia-auth-input--plain" required inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]{4}" placeholder="0000">
                 </label>
 
                 <button type="submit" class="ia-auth-btn ia-auth-btn--primary ia-auth-btn--block">Подтвердить</button>
@@ -149,6 +152,34 @@ require IA_ROOT . '/includes/partials/site-header.php';
 </div>
 
 <script>
+(function () {
+  var timer = document.getElementById('iaRegTimer');
+  var num = document.getElementById('iaRegTimerNum');
+  var resend = document.getElementById('iaRegResend');
+  if (timer && num && resend) {
+    var left = parseInt(timer.getAttribute('data-seconds') || '0', 10);
+    if (!isFinite(left) || left < 0) left = 0;
+    var arm = left > 0;
+    var sent = false;
+    function sendFresh() {
+      if (sent) return;
+      sent = true;
+      timer.textContent = 'Отправляем новый код…';
+      resend.submit();
+    }
+    function tick() {
+      if (left <= 0) {
+        if (arm || timer.getAttribute('data-auto') === '1') sendFresh();
+        else num.textContent = '0';
+        return;
+      }
+      num.textContent = String(left);
+      left -= 1;
+      window.setTimeout(tick, 1000);
+    }
+    tick();
+  }
+})();
 (function () {
   document.querySelectorAll('[data-ia-pw-toggle]').forEach(function (btn) {
     btn.addEventListener('click', function () {
