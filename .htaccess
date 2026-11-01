@@ -23,6 +23,14 @@ Options -Indexes
     RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$ [NC]
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
+    # INOVAAUTO_MAIN_BLOCK_START
+    # Guest lock for apex + www only. Subdomains keep their own document roots and are not matched.
+    RewriteCond %{HTTP_HOST} ^(www\.)?inovaauto\.com$ [NC]
+    RewriteCond %{REQUEST_URI} !^/maintenance\.html$ [NC]
+    RewriteCond %{REQUEST_URI} !^/health\.php$ [NC]
+    RewriteRule ^ /maintenance.html [L]
+    # INOVAAUTO_MAIN_BLOCK_END
+
     # --- Clean URLs: hide .php extension (public site; admin/ keeps .php) ---
 
     # index.php → /
